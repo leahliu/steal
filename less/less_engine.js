@@ -15,14 +15,14 @@ function require(arg) {
     return window.less[arg.split('/')[1]];
 };
 
-var less, tree, charset;
+var less, tree, charset, seen = [];
 
-if (typeof environment === "object" && ({}).toString.call(environment) === "[object Environment]") {
+/*if (typeof environment === "object" && ({}).toString.call(environment) === "[object Environment]") {
     // Rhino
     // Details on how to detect Rhino: https://github.com/ringo/ringojs/issues/88
-    if (typeof(window) === 'undefined') { less = {} }
-    else                                { less = window.less = {} }
-    tree = less.tree = {};
+    if (typeof(window.less) === 'undefined') { window.less = {} }
+    less = window.less,
+    tree = window.less.tree = {};
     less.mode = 'rhino';
 } else if (typeof(window) === 'undefined') {
     // Node.js
@@ -35,7 +35,11 @@ if (typeof environment === "object" && ({}).toString.call(environment) === "[obj
     less = window.less,
     tree = window.less.tree = {};
     less.mode = 'browser';
-}
+}*/
+    if (typeof(window.less) === 'undefined') { window.less = {} }
+    less = window.less,
+        tree = window.less.tree = {};
+    less.mode = 'browser';
 //
 // less.js - parser
 //
@@ -86,6 +90,7 @@ less.Parser = function Parser(env) {
     // which will then be passed around by reference.
     if (!(env instanceof tree.parseEnv)) {
         env = new tree.parseEnv(env);
+        console.log("NEW PARSE ENVIRONMENT")
     }
 
     var imports = this.imports = {
@@ -106,6 +111,7 @@ less.Parser = function Parser(env) {
                 parserImporter.queue.splice(parserImporter.queue.indexOf(path), 1); // Remove the path from the queue
 
                 var imported = fullPath in parserImporter.files;
+
                 parserImporter.files[fullPath] = root;                        // Store the root
 
                 if (e && !parserImporter.error) { parserImporter.error = e; }
@@ -114,6 +120,16 @@ less.Parser = function Parser(env) {
             }, env);
         }
     };
+
+    console.log(JSON.stringify(imports,function(key, val) {
+        if (typeof val == "object") {
+            if (seen.indexOf(val) >= 0)
+                return
+            seen.push(val)
+        }
+        return val
+    }));
+
 
     function save()    { temp = chunks[j], memo = i, current = i; }
     function restore() { chunks[j] = temp, i = memo, current = i; }
@@ -1602,8 +1618,6 @@ less.Parser = function Parser(env) {
         }
     };
 };
-
-var currentImports = {};
 
 if (less.mode === 'browser' || less.mode === 'rhino') {
     //
@@ -5530,7 +5544,7 @@ function extractUrlParts(url, baseUrl) {
 }
 
 function loadStyleSheet(sheet, callback, reload, remaining) {
-    // console.log('loading', sheet)
+    //console.log('loading', sheet)
     // sheet may be set to the stylesheet for the initial load or a collection of properties including
     // some env variables for imports
     var hrefParts = extractUrlParts(sheet.href, window.location.href);
