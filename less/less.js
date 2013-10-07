@@ -57,11 +57,8 @@ steal({id: "./less_engine.js",ignore: true},function(){
      */
 
     var imports = "",
-        env,
-        envCreated = false,
         lessString,
         bound = false,
-        parser,
         createImport,
         createStyle;
 
