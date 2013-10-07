@@ -90,7 +90,7 @@ less.Parser = function Parser(env) {
     // which will then be passed around by reference.
     if (!(env instanceof tree.parseEnv)) {
         env = new tree.parseEnv(env);
-        console.log("NEW PARSE ENVIRONMENT")
+        //console.log("NEW PARSE ENVIRONMENT")
     }
 
     var imports = this.imports = {
@@ -121,14 +121,14 @@ less.Parser = function Parser(env) {
         }
     };
 
-    console.log(JSON.stringify(imports,function(key, val) {
+    /*console.log(JSON.stringify(imports,function(key, val) {
         if (typeof val == "object") {
             if (seen.indexOf(val) >= 0)
                 return
             seen.push(val)
         }
         return val
-    }));
+    }));*/
 
 
     function save()    { temp = chunks[j], memo = i, current = i; }

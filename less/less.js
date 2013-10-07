@@ -1,60 +1,5 @@
 steal({id: "./less_engine.js",ignore: true},function(){
 
-    // only if rhino and we have less
-    if(steal.isRhino && window.less) {
-        // Some monkey patching of the LESS AST
-        // For production builds we NEVER want the parser to add paths to a url(),
-        // the CSS postprocessor is doing that already.
-        /*(function(tree) {
-            var oldProto = tree.URL.prototype;
-            tree.URL = function (val, paths) {
-                if (val.data) {
-                    this.attrs = val;
-                } else {
-                    this.value = val;
-                    this.paths = paths;
-                }
-            };
-            tree.URL.prototype = oldProto;
-            String.prototype.trim=function(){
-                return this.replace(/^\s+|\s+$/g, '');
-            };
-            Array.isArray = function(o) {
-                return Object.prototype.toString.call(o) === '[object Array]';
-            };
-            Array.prototype.reduce = function(callback, opt_initialValue){
-                if (null === this || 'undefined' === typeof this) {
-                    // At the moment all modern browsers, that support strict mode, have
-                    // native implementation of Array.prototype.reduce. For instance, IE8
-                    // does not support strict mode, so this check is actually useless.
-                    throw new TypeError(
-                        'Array.prototype.reduce called on null or undefined');
-                }
-                if ('function' !== typeof callback) {
-                    throw new TypeError(callback + ' is not a function');
-                }
-                var index = 0, length = this.length >>> 0, value, isValueSet = false;
-                if (1 < arguments.length) {
-                    value = opt_initialValue;
-                    isValueSet = true;
-                }
-                for ( ; length > index; ++index) {
-                    if (!this.hasOwnProperty(index)) continue;
-                    if (isValueSet) {
-                        value = callback(value, this[index], index, this);
-                    } else {
-                        value = this[index];
-                        isValueSet = true;
-                    }
-                }
-                if (!isValueSet) {
-                    throw new TypeError('Reduce of empty array with no initial value');
-                }
-                return value;
-            };
-        })(less.tree);*/
-    }
-
     /**
      * @page steal.less steal.less
      * @parent stealjs
@@ -143,14 +88,12 @@ steal({id: "./less_engine.js",ignore: true},function(){
         document.getElementsByTagName("head")[0].appendChild(tag);
     };
 
-    parser = new less.Parser();
-
-    steal.type("less", function(options, success, error){
+    steal.type("less css", function(options, success, error){
         var src = options.src+"",
             base = "" + window.location,
             url = src.match(/([^\?#]*)/)[1];
 
-        //set up imports for use in development mode
+        //set up imports for use by the less compiler
         //these are injected in to a parent less style block
         //and evaluated using less.refresh() below
         imports += createImport(options.id.path);
@@ -159,17 +102,9 @@ steal({id: "./less_engine.js",ignore: true},function(){
             url = Envjs.uri(url, base);
             lessString = createImport(url);
 
-            less.env = 'development';
-
-            parser.parse(lessString, function (e, tree) {
-                if (e) {
-                    console.log(e);
-                    error();
-                } else {
-                    options.text = tree.toCSS({compress: true });
-                    success();
-                }
-            });
+            less.env = 'production';
+            options.text = lessString;
+            success();
 
         }else{
             if(!bound){
